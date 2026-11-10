@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+dist-test/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Caches
+.eslintcache
+*.tsbuildinfo
+.cache/
+
+# OS
+.DS_Store
+
+# Yarn Berry
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Docs, plans
+.cursor/
+.docs/
