@@ -2,12 +2,16 @@ import "reflect-metadata";
 import { buildApp } from "./app.js";
 import { loadEnv } from "./config/env.js";
 import { createDataSource } from "./persistence/data-source.js";
+import "./persistence/repositories/sports-event-repository.js";
+import { Container } from "typedi";
+import { DataSource } from "typeorm";
 
 import type { FastifyInstance } from "fastify";
 
 export async function bootstrap(): Promise<FastifyInstance> {
   const env = loadEnv();
   const dataSource = createDataSource(env.DATABASE_URL);
+  Container.set(DataSource, dataSource);
 
   await dataSource.initialize();
 
