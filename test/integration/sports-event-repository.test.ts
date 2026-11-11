@@ -7,7 +7,7 @@ import {
   teamId,
 } from "../../src/domain/index.js";
 import { createDataSource } from "../../src/persistence/data-source.js";
-import { OptimisticLockError } from "../../src/persistence/repositories/optimistic-lock-error.js";
+import { OptimisticLockError } from "../../src/persistence/repositories/errors.js";
 import { SportsEventRepository } from "../../src/persistence/repositories/sports-event-repository.js";
 import { SportSchema } from "../../src/persistence/schemas/sport.js";
 import { TeamSchema } from "../../src/persistence/schemas/team.js";

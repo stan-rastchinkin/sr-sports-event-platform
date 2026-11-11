@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { buildApp } from "./app.js";
+import "./container.js";
 import { loadEnv } from "./config/env.js";
 import { createDataSource } from "./persistence/data-source.js";
-import "./persistence/repositories/sports-event-repository.js";
 import { Container } from "typedi";
 import { DataSource } from "typeorm";
 

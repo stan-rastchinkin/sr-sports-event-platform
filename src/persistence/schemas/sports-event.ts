@@ -1,21 +1,9 @@
 import { EventStatusName } from "../../domain/event-status/index.js";
 import { EntitySchema } from "typeorm";
 
-import type { EventKind } from "../../domain/event-status/index.js";
+import type { SportsEventSearchResult } from "../../application/interfaces/sports-event-search-repository.js";
 
-export type SportsEventRow = {
-  id: string;
-  sportId: number;
-  homeTeamId: string;
-  awayTeamId: string;
-  scheduledAt: Date;
-  status: EventKind;
-  startedAt: Date | null;
-  finishedAt: Date | null;
-  cancelledAt: Date | null;
-  cancellationReason: string | null;
-  version: number;
-};
+export type SportsEventRow = SportsEventSearchResult;
 
 export const SportsEventSchema = new EntitySchema<SportsEventRow>({
   name: "SportsEvent",
