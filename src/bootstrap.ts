@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { buildApp } from "./app.js";
 import { loadEnv } from "./config/env.js";
 import { createDataSource } from "./persistence/data-source.js";

@@ -152,6 +152,29 @@ describe("EventStatus", () => {
     expect(reread.startedAt).not.toBe(input);
   });
 
+  it("omits null fields that do not belong to the status", () => {
+    expect(
+      EventStatus.create({
+        status: "scheduled",
+        startedAt: null,
+      }).state,
+    ).toEqual({ status: "scheduled" });
+
+    expect(
+      EventStatus.create({
+        status: "finished",
+        startedAt,
+        finishedAt,
+        cancelledAt: null,
+        cancelationReason: null,
+      }).state,
+    ).toEqual({
+      status: "finished",
+      startedAt,
+      finishedAt,
+    });
+  });
+
   it("creates each valid lifecycle record", () => {
     expect(EventStatus.create({ status: "scheduled" }).state.status).toBe("scheduled");
 
@@ -176,8 +199,12 @@ describe("EventStatus", () => {
         status: "cancelled",
         cancelledAt,
         cancelationReason: "  rain  ",
-      }).state.cancelationReason,
-    ).toBe("rain");
+      }).state,
+    ).toEqual({
+      status: "cancelled",
+      cancelledAt,
+      cancelationReason: "rain",
+    });
   });
 
   it("rejects combinations that disagree with the status", () => {
@@ -187,7 +214,7 @@ describe("EventStatus", () => {
           status: "scheduled",
           startedAt,
         }),
-      "startedAt: must be undefined",
+      'Unrecognized key: "startedAt"',
     );
 
     expectStatusError(

@@ -1,6 +1,5 @@
 import { z } from "zod";
-
-const absent = z.undefined("must be undefined").optional();
+import { omitNulls } from "../core/index.js"
 
 export enum EventStatusName {
   Scheduled = "scheduled",
@@ -11,45 +10,46 @@ export enum EventStatusName {
 
 export type EventKind = `${EventStatusName}`;
 
-const scheduledStateSchema = z.object({
-  status: z.literal(EventStatusName.Scheduled),
-  startedAt: absent,
-  finishedAt: absent,
-  cancelledAt: absent,
-  cancelationReason: absent,
-});
+const scheduledStateSchema = z.preprocess(
+  omitNulls,
+  z.strictObject({
+    status: z.literal(EventStatusName.Scheduled),
+  }),
+);
 
-const inProgressStateSchema = z.object({
-  status: z.literal(EventStatusName.InProgress),
-  startedAt: z.date(),
-  finishedAt: absent,
-  cancelledAt: absent,
-  cancelationReason: absent,
-});
-
-const finishedStateSchema = z
-  .object({
-    status: z.literal(EventStatusName.Finished),
+const inProgressStateSchema = z.preprocess(
+  omitNulls,
+  z.strictObject({
+    status: z.literal(EventStatusName.InProgress),
     startedAt: z.date(),
-    finishedAt: z.date(),
-    cancelledAt: absent,
-    cancelationReason: absent,
-  })
-  .refine(
-    (state) => state.finishedAt.getTime() >= state.startedAt.getTime(),
-    "Finish timestamp must not precede the start timestamp",
-  );
+  }),
+);
 
-const cancelledStateSchema = z.object({
-  status: z.literal(EventStatusName.Cancelled),
-  startedAt: absent,
-  finishedAt: absent,
-  cancelledAt: z.date(),
-  cancelationReason: z
-    .string("Cancellation reason must be nonempty")
-    .trim()
-    .min(1, "Cancellation reason must be nonempty"),
-});
+const finishedStateSchema = z.preprocess(
+  omitNulls,
+  z
+    .strictObject({
+      status: z.literal(EventStatusName.Finished),
+      startedAt: z.date(),
+      finishedAt: z.date(),
+    })
+    .refine(
+      (state) => state.finishedAt.getTime() >= state.startedAt.getTime(),
+      "Finish timestamp must not precede the start timestamp",
+    ),
+);
+
+const cancelledStateSchema = z.preprocess(
+  omitNulls,
+  z.strictObject({
+    status: z.literal(EventStatusName.Cancelled),
+    cancelledAt: z.date(),
+    cancelationReason: z
+      .string("Cancellation reason must be nonempty")
+      .trim()
+      .min(1, "Cancellation reason must be nonempty"),
+  }),
+);
 
 export const stateSchemaValidators = {
   [EventStatusName.Scheduled]: scheduledStateSchema,

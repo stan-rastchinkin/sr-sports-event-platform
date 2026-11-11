@@ -5,10 +5,10 @@ import type { EventKind, EventState } from "./validation-schemas.js";
 
 type EventStatusInput = {
   status: string;
-  startedAt?: Date;
-  finishedAt?: Date;
-  cancelledAt?: Date;
-  cancelationReason?: string;
+  startedAt?: Date | null;
+  finishedAt?: Date | null;
+  cancelledAt?: Date | null;
+  cancelationReason?: string | null;
 };
 
 export class SportsEventStatusDomainError extends DomainError {}
