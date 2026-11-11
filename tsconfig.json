@@ -6,6 +6,8 @@
     "moduleResolution": "NodeNext",
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "noEmit": true,
