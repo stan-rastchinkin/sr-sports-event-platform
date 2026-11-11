@@ -6,6 +6,7 @@ export {
 } from "./core/index.js";
 export {
   EventStatus,
+  EventStatusName,
   SportsEventStatusDomainError,
 } from "./event-status/index.js";
 export { eventId, sportId, teamId } from "./ids.js";

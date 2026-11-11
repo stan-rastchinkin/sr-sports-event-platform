@@ -2,29 +2,38 @@ import { z } from "zod";
 
 const absent = z.undefined("must be undefined").optional();
 
+export enum EventStatusName {
+  Scheduled = "scheduled",
+  InProgress = "in_progress",
+  Finished = "finished",
+  Cancelled = "cancelled",
+}
+
+export type EventKind = `${EventStatusName}`;
+
 const scheduledStateSchema = z.object({
-  kind: z.literal("scheduled"),
+  status: z.literal(EventStatusName.Scheduled),
   startedAt: absent,
   finishedAt: absent,
   cancelledAt: absent,
-  reason: absent,
+  cancelationReason: absent,
 });
 
 const inProgressStateSchema = z.object({
-  kind: z.literal("in_progress"),
+  status: z.literal(EventStatusName.InProgress),
   startedAt: z.date(),
   finishedAt: absent,
   cancelledAt: absent,
-  reason: absent,
+  cancelationReason: absent,
 });
 
 const finishedStateSchema = z
   .object({
-    kind: z.literal("finished"),
+    status: z.literal(EventStatusName.Finished),
     startedAt: z.date(),
     finishedAt: z.date(),
     cancelledAt: absent,
-    reason: absent,
+    cancelationReason: absent,
   })
   .refine(
     (state) => state.finishedAt.getTime() >= state.startedAt.getTime(),
@@ -32,23 +41,21 @@ const finishedStateSchema = z
   );
 
 const cancelledStateSchema = z.object({
-  kind: z.literal("cancelled"),
+  status: z.literal(EventStatusName.Cancelled),
   startedAt: absent,
   finishedAt: absent,
   cancelledAt: z.date(),
-  reason: z
+  cancelationReason: z
     .string("Cancellation reason must be nonempty")
     .trim()
     .min(1, "Cancellation reason must be nonempty"),
 });
 
 export const stateSchemaValidators = {
-  scheduled: scheduledStateSchema,
-  in_progress: inProgressStateSchema,
-  finished: finishedStateSchema,
-  cancelled: cancelledStateSchema,
-} as const;
-
-export type EventKind = keyof typeof stateSchemaValidators;
+  [EventStatusName.Scheduled]: scheduledStateSchema,
+  [EventStatusName.InProgress]: inProgressStateSchema,
+  [EventStatusName.Finished]: finishedStateSchema,
+  [EventStatusName.Cancelled]: cancelledStateSchema,
+} as const satisfies Record<EventKind, z.ZodType>;
 
 export type EventState = z.output<(typeof stateSchemaValidators)[EventKind]>;

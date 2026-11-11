@@ -1,5 +1,5 @@
 import { AggregateRoot, DomainError } from "./core/index.js";
-import { EventStatus } from "./event-status/index.js";
+import { EventStatus, EventStatusName } from "./event-status/index.js";
 
 import type { EventId, SportId } from "./ids.js";
 import type { Team } from "./team.js";
@@ -53,7 +53,7 @@ export class SportsEvent extends AggregateRoot<EventId> {
       input.homeTeam,
       input.awayTeam,
       input.scheduledAt,
-      EventStatus.create({ kind: "scheduled" }),
+      EventStatus.create({ status: EventStatusName.Scheduled }),
     );
   }
 
@@ -92,10 +92,10 @@ export class SportsEvent extends AggregateRoot<EventId> {
   }
 
   public reschedule(newScheduledAt: Date): void {
-    if (this.statusValue.state.kind !== "scheduled") {
+    if (this.statusValue.state.status !== EventStatusName.Scheduled) {
       throw new SportsEventDomainError(
         "Only scheduled events can be rescheduled",
-        { currentState: this.statusValue.state.kind }
+        { currentState: this.statusValue.state.status },
       );
     }
 

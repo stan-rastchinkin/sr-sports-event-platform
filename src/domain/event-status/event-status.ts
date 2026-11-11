@@ -1,14 +1,14 @@
 import { DomainError, validateAgainstSchema } from "../core/index.js";
-import { stateSchemaValidators } from "./validation-schemas.js";
+import { EventStatusName, stateSchemaValidators } from "./validation-schemas.js";
 
 import type { EventKind, EventState } from "./validation-schemas.js";
 
 type EventStatusInput = {
-  kind: string;
+  status: string;
   startedAt?: Date;
   finishedAt?: Date;
   cancelledAt?: Date;
-  reason?: string;
+  cancelationReason?: string;
 };
 
 export class SportsEventStatusDomainError extends DomainError {}
@@ -25,85 +25,85 @@ export class EventStatus {
   }
 
   public static create(input: EventStatusInput): EventStatus {
-    if (!Object.hasOwn(stateSchemaValidators, input.kind)) {
-      throw new SportsEventStatusDomainError(`Unknown event status`, { status: input.kind });
+    if (!Object.hasOwn(stateSchemaValidators, input.status)) {
+      throw new SportsEventStatusDomainError(`Unknown event status`, { status: input.status });
     }
 
-    const schema = stateSchemaValidators[input.kind as EventKind];
+    const schema = stateSchemaValidators[input.status as EventKind];
     return new EventStatus(validateAgainstSchema<EventState>(schema, input, SportsEventStatusDomainError));
   }
 
   public start(at: Date): EventStatus {
-    if (this.stateValue.kind !== "scheduled") {
-      throw new SportsEventStatusDomainError("Only scheduled events can start", { status: this.stateValue.kind });
+    if (this.stateValue.status !== EventStatusName.Scheduled) {
+      throw new SportsEventStatusDomainError("Only scheduled events can start", { status: this.stateValue.status });
     }
     const data = validateAgainstSchema<EventState>(
-      stateSchemaValidators.in_progress,
+      stateSchemaValidators[EventStatusName.InProgress],
       {
-        kind: "in_progress",
+        status: EventStatusName.InProgress,
         startedAt: new Date(at),
       },
-      SportsEventStatusDomainError
-    )
-    
+      SportsEventStatusDomainError,
+    );
+
     return new EventStatus(data);
   }
 
   public finish(at: Date): EventStatus {
-    if (this.stateValue.kind !== "in_progress") {
-      throw new SportsEventStatusDomainError("Only in-progress events can finish", { status: this.stateValue.kind });
+    if (this.stateValue.status !== EventStatusName.InProgress) {
+      throw new SportsEventStatusDomainError("Only in-progress events can finish", { status: this.stateValue.status });
     }
     const data = validateAgainstSchema<EventState>(
-      stateSchemaValidators.finished,
+      stateSchemaValidators[EventStatusName.Finished],
       {
-        kind: "finished",
+        status: EventStatusName.Finished,
         startedAt: new Date(this.stateValue.startedAt),
         finishedAt: new Date(at),
       },
-      SportsEventStatusDomainError
-    )
+      SportsEventStatusDomainError,
+    );
 
     return new EventStatus(data);
   }
 
   public cancel(reason: string, at: Date): EventStatus {
-    if (this.stateValue.kind !== "scheduled") {
-      throw new SportsEventStatusDomainError("Only scheduled events can be cancelled", { status: this.stateValue.kind });
+    if (this.stateValue.status !== EventStatusName.Scheduled) {
+      throw new SportsEventStatusDomainError("Only scheduled events can be cancelled", { status: this.stateValue.status });
     }
     const data = validateAgainstSchema<EventState>(
-      stateSchemaValidators.cancelled,
+      stateSchemaValidators[EventStatusName.Cancelled],
       {
-        kind: "cancelled",
+        status: EventStatusName.Cancelled,
         cancelledAt: new Date(at),
-        reason,
+        cancelationReason: reason,
       },
-      SportsEventStatusDomainError
-    )
+      SportsEventStatusDomainError,
+    );
 
     return new EventStatus(data);
   }
 }
 
 function copyState(state: EventState): EventState {
-  switch (state.kind) {
-    case "scheduled":
-      return { kind: "scheduled" };
-    case "in_progress":
+  switch (state.status) {
+    case EventStatusName.Scheduled:
+      return { status: EventStatusName.Scheduled };
+    case EventStatusName.InProgress:
       return {
-        kind: "in_progress",
+        status: EventStatusName.InProgress,
         startedAt: new Date(state.startedAt),
       };
-    case "finished":
+    case EventStatusName.Finished:
       return {
-        kind: "finished",
+        status: EventStatusName.Finished,
         startedAt: new Date(state.startedAt),
         finishedAt: new Date(state.finishedAt),
       };
-    case "cancelled":
+    case EventStatusName.Cancelled:
       return {
-        kind: "cancelled",
+        status: EventStatusName.Cancelled,
         cancelledAt: new Date(state.cancelledAt),
-        reason: state.reason,
+        cancelationReason: state.cancelationReason,
       };
   }
 }

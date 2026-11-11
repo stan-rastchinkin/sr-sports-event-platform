@@ -53,7 +53,7 @@ describe("SportsEvent", () => {
     expect(event.homeTeam).toBe(home);
     expect(event.awayTeam).toBe(away);
     expect(event.scheduledAt).toEqual(kickoff);
-    expect(event.status.state.kind).toBe("scheduled");
+    expect(event.status.state.status).toBe("scheduled");
   });
 
   it("rejects the same team on both sides", () => {
@@ -110,7 +110,7 @@ describe("SportsEvent", () => {
     expect(event.id).toBe(eventId(eventUuid));
     expect(event.version).toBe(0);
     expect(event.scheduledAt).toEqual(nextKickoff);
-    expect(event.status.state.kind).toBe("scheduled");
+    expect(event.status.state.status).toBe("scheduled");
 
     event.start(startedAt);
 
@@ -127,9 +127,9 @@ describe("SportsEvent", () => {
 
     started.start(startedAt);
 
-    expect(before.state.kind).toBe("scheduled");
+    expect(before.state.status).toBe("scheduled");
     expect(started.status.state).toEqual({
-      kind: "in_progress",
+      status: "in_progress",
       startedAt,
     });
     expect(started.version).toBe(0);
@@ -139,7 +139,7 @@ describe("SportsEvent", () => {
 
     started.finish(finishedAt);
 
-    expect(started.status.state.kind).toBe("finished");
+    expect(started.status.state.status).toBe("finished");
     expect(started.version).toBe(0);
     expect(() => started.cancel("rain", cancelledAt)).toThrow(
       "Only scheduled events can be cancelled",
@@ -149,9 +149,9 @@ describe("SportsEvent", () => {
     cancelled.cancel("  pitch frozen  ", cancelledAt);
 
     expect(cancelled.status.state).toEqual({
-      kind: "cancelled",
+      status: "cancelled",
       cancelledAt,
-      reason: "pitch frozen",
+      cancelationReason: "pitch frozen",
     });
     expect(cancelled.version).toBe(0);
     expect(() => cancelled.start(startedAt)).toThrow(
@@ -162,7 +162,7 @@ describe("SportsEvent", () => {
   it("reconstitutes a persisted event and still enforces participant rules", () => {
     const { sport, home, away } = opponents();
     const status = EventStatus.create({
-      kind: "in_progress",
+      status: "in_progress",
       startedAt,
     });
     const event = SportsEvent.reconstitute({
@@ -178,7 +178,7 @@ describe("SportsEvent", () => {
     event.finish(finishedAt);
 
     expect(event.version).toBe(5);
-    expect(event.status.state.kind).toBe("finished");
+    expect(event.status.state.status).toBe("finished");
 
     expect(() =>
       SportsEvent.reconstitute({

@@ -15,7 +15,7 @@ const finishedAt = new Date("2026-06-01T17:00:00.000Z");
 const cancelledAt = new Date("2026-05-31T12:00:00.000Z");
 
 function scheduledStatus(): EventStatus {
-  return EventStatus.create({ kind: "scheduled" });
+  return EventStatus.create({ status: "scheduled" });
 }
 
 describe("SportsEventStatusDomainError", () => {
@@ -30,7 +30,7 @@ describe("SportsEventStatusDomainError", () => {
 describe("EventStatus", () => {
   it("creates a scheduled status with no lifecycle timestamps", () => {
     expect(scheduledStatus().state).toEqual({
-      kind: "scheduled",
+      status: "scheduled",
     });
   });
 
@@ -38,10 +38,10 @@ describe("EventStatus", () => {
     const scheduled = scheduledStatus();
     const started = scheduled.start(startedAt);
 
-    expect(scheduled.state.kind).toBe("scheduled");
+    expect(scheduled.state.status).toBe("scheduled");
     expect(started).not.toBe(scheduled);
     expect(started.state).toEqual({
-      kind: "in_progress",
+      status: "in_progress",
       startedAt,
     });
   });
@@ -50,20 +50,20 @@ describe("EventStatus", () => {
     const started = scheduledStatus().start(startedAt);
 
     expect(started.finish(finishedAt).state).toEqual({
-      kind: "finished",
+      status: "finished",
       startedAt,
       finishedAt,
     });
-    expect(started.finish(startedAt).state.kind).toBe("finished");
+    expect(started.finish(startedAt).state.status).toBe("finished");
   });
 
   it("cancels a scheduled status and stores the trimmed reason", () => {
     const cancelled = scheduledStatus().cancel("  heavy rain  ", cancelledAt);
 
     expect(cancelled.state).toEqual({
-      kind: "cancelled",
+      status: "cancelled",
       cancelledAt,
-      reason: "heavy rain",
+      cancelationReason: "heavy rain",
     });
   });
 
@@ -74,7 +74,7 @@ describe("EventStatus", () => {
       () => started.finish(startedAt),
       "Finish timestamp must not precede the start timestamp",
     );
-    expect(started.state.kind).toBe("in_progress");
+    expect(started.state.status).toBe("in_progress");
   });
 
   it.each(["", "   "])("rejects a blank cancellation reason %j", (reason) => {
@@ -84,7 +84,7 @@ describe("EventStatus", () => {
       () => scheduled.cancel(reason, cancelledAt),
       "Cancellation reason must be nonempty",
     );
-    expect(scheduled.state.kind).toBe("scheduled");
+    expect(scheduled.state.status).toBe("scheduled");
   });
 
   it("rejects invalid timestamps without changing the current status", () => {
@@ -93,7 +93,7 @@ describe("EventStatus", () => {
     expect(() => scheduled.start(new Date(Number.NaN))).toThrow(
       "expected date, received Date",
     );
-    expect(scheduled.state.kind).toBe("scheduled");
+    expect(scheduled.state.status).toBe("scheduled");
   });
 
   it.each([
@@ -104,7 +104,7 @@ describe("EventStatus", () => {
     const finished = scheduledStatus().start(startedAt).finish(finishedAt);
 
     expect(() => transition(finished)).toThrow(SportsEventStatusDomainError);
-    expect(finished.state.kind).toBe("finished");
+    expect(finished.state.status).toBe("finished");
   });
 
   it("rejects start and cancel once an event is in progress, and finish once it is cancelled", () => {
@@ -139,13 +139,13 @@ describe("EventStatus", () => {
     input.setUTCFullYear(1999);
 
     const exposed = started.state;
-    if (exposed.kind !== "in_progress") {
+    if (exposed.status !== "in_progress") {
       throw new Error("expected in_progress");
     }
     exposed.startedAt.setUTCFullYear(1999);
 
     const reread = started.state;
-    if (reread.kind !== "in_progress") {
+    if (reread.status !== "in_progress") {
       throw new Error("expected in_progress");
     }
     expect(reread.startedAt.toISOString()).toBe("2026-06-01T15:00:00.000Z");
@@ -153,30 +153,30 @@ describe("EventStatus", () => {
   });
 
   it("creates each valid lifecycle record", () => {
-    expect(EventStatus.create({ kind: "scheduled" }).state.kind).toBe("scheduled");
+    expect(EventStatus.create({ status: "scheduled" }).state.status).toBe("scheduled");
 
-    expect(EventStatus.create({ kind: "in_progress", startedAt }).state.kind).toBe(
+    expect(EventStatus.create({ status: "in_progress", startedAt }).state.status).toBe(
       "in_progress",
     );
 
     expect(
       EventStatus.create({
-        kind: "finished",
+        status: "finished",
         startedAt,
         finishedAt,
       }).state,
     ).toEqual({
-      kind: "finished",
+      status: "finished",
       startedAt,
       finishedAt,
     });
 
     expect(
       EventStatus.create({
-        kind: "cancelled",
+        status: "cancelled",
         cancelledAt,
-        reason: "  rain  ",
-      }).state.reason,
+        cancelationReason: "  rain  ",
+      }).state.cancelationReason,
     ).toBe("rain");
   });
 
@@ -184,21 +184,21 @@ describe("EventStatus", () => {
     expectStatusError(
       () =>
         EventStatus.create({
-          kind: "scheduled",
+          status: "scheduled",
           startedAt,
         }),
       "startedAt: must be undefined",
     );
 
     expectStatusError(
-      () => EventStatus.create({ kind: "in_progress" }),
+      () => EventStatus.create({ status: "in_progress" }),
       "startedAt: Invalid input: expected date, received undefined",
     );
 
     expectStatusError(
       () =>
         EventStatus.create({
-          kind: "finished",
+          status: "finished",
           startedAt: finishedAt,
           finishedAt: startedAt,
         }),
@@ -208,15 +208,15 @@ describe("EventStatus", () => {
     expectStatusError(
       () =>
         EventStatus.create({
-          kind: "cancelled",
+          status: "cancelled",
           cancelledAt,
-          reason: "   ",
+          cancelationReason: "   ",
         }),
       "Cancellation reason must be nonempty",
     );
 
     expectStatusError(
-      () => EventStatus.create({ kind: "postponed" }),
+      () => EventStatus.create({ status: "postponed" }),
       'Unknown event status; extras: {"status":"postponed"}',
     );
   });
