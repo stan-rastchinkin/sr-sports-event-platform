@@ -1,0 +1,23 @@
+1. How I used AI
+-------------
+
+I used Grok and GPT for planning and Cursor with Grok 4.7 for implementation. I also used ChatGPT to draft the submission documentation from the exercise brief and repository source.
+
+
+
+2.Decisions I validated independently
+-----------------------------------
+
+I reviewed and revised AI-generated work throughout the project. Here are two examples.
+
+- Domain modeling.
+I reviewed the domain model and manually reworked a substantial part of the domain layer.
+
+- Transaction ownership.
+Grok exposed database transaction configuration as application service parameters and passed those parameters through to the repository. I asked Grok to change the design. The repository now controls transaction configuration for scheduling and rescheduling.
+
+3. A significant suggestion I rejected
+------------------------------------
+
+- HTTP error codes
+I asked Grok to add machine-readable codes to HTTP error responses. It put those codes on domain and application errors and introduced a distinct code for almost every place an error was thrown. I rejected the proposal because it coupled internal errors to the HTTP contract and gave clients more codes than they needed to distinguish. The final implementation maps errors to a small set of response codes in the HTTP error handler.
