@@ -16,6 +16,6 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"]
   },
-  "include": ["src", "test", "migrations"],
+  "include": ["src", "test", "migrations", "scripts"],
   "exclude": ["dist", "dist-test", "node_modules"]
 }

@@ -7,7 +7,7 @@ export default tseslint.config(
     ignores: ["dist/**", "dist-test/**", "node_modules/**"],
   },
   {
-    files: ["src/**/*.ts"],
+    files: ["src/**/*.ts", "scripts/**/*.ts"],
     extends: [
       eslint.configs.recommended,
       ...tseslint.configs.recommendedTypeChecked,
@@ -30,7 +30,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/**/*.ts", "test/**/*.ts", "migrations/**/*.ts"],
+    files: ["src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts", "migrations/**/*.ts"],
     plugins: {
       perfectionist,
     },

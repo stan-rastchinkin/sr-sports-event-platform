@@ -46,7 +46,10 @@ Both files use user `sports`, password `sports`, host `localhost`, port `5432`. 
 ```sh
 yarn db:up
 yarn db:down
+yarn db:seed
 ```
+
+`yarn db:seed` loads `.env.dev` and upserts 5 sports and 20 teams into `sports_events`. It does not insert events. Running it again updates those rows and leaves any events you created in place. It refuses to run unless `DATABASE_URL` points at `sports_events`. Apply migrations first.
 
 `01-databases.sql` runs only when the data volume is empty. Compose does not set `POSTGRES_DB`, so the image also creates a database named after the user, `sports`. The application uses `sports_events` and `sports_events_test`. If either of those was never created, remove the volume and start again:
 
