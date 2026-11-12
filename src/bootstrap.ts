@@ -6,9 +6,16 @@ import { createDataSource } from "./persistence/data-source.js";
 import { Container } from "typedi";
 import { DataSource } from "typeorm";
 
+import type { Env } from "./config/env.js";
 import type { FastifyInstance } from "fastify";
 
-export async function bootstrap(): Promise<FastifyInstance> {
+export interface Application {
+  app: FastifyInstance;
+  dataSource: DataSource;
+  env: Env;
+}
+
+export async function bootstrap(): Promise<Application> {
   const env = loadEnv();
   const dataSource = createDataSource(env.DATABASE_URL);
   Container.set({
@@ -20,7 +27,11 @@ export async function bootstrap(): Promise<FastifyInstance> {
   await dataSource.initialize();
 
   try {
-    return await buildApp({ env, dataSource });
+    return {
+      app: await buildApp({ env, dataSource }),
+      dataSource,
+      env,
+    };
   } catch (error) {
     if (dataSource.isInitialized) {
       await dataSource.destroy();

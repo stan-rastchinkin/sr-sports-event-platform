@@ -16,7 +16,7 @@ describe("HTTP API", () => {
   const awayTeamId = randomUUID();
 
   beforeAll(async () => {
-    app = await bootstrap();
+    ({ app } = await bootstrap());
     const dataSource = Container.get(DataSource);
     await removeSport(dataSource);
     await dataSource
