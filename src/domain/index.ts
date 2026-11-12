@@ -3,6 +3,7 @@ export {
   DomainError,
   Entity,
   validateAgainstSchema,
+  ValidationError,
 } from "./core/index.js";
 export {
   EventStatus,

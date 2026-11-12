@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { omitNulls } from "../core/index.js"
+import { z } from "zod";
 
 export enum EventStatusName {
   Scheduled = "scheduled",

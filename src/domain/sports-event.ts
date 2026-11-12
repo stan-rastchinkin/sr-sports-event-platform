@@ -93,10 +93,9 @@ export class SportsEvent extends AggregateRoot<EventId> {
 
   public reschedule(newScheduledAt: Date): void {
     if (this.statusValue.state.status !== EventStatusName.Scheduled) {
-      throw new SportsEventDomainError(
-        "Only scheduled events can be rescheduled",
-        { currentState: this.statusValue.state.status },
-      );
+      throw new SportsEventDomainError("Only scheduled events can be rescheduled", {
+        currentState: this.statusValue.state.status,
+      });
     }
 
     this.scheduledAtValue = new Date(newScheduledAt);
@@ -121,7 +120,10 @@ function assertSameSportAndOpponents(
   awayTeam: Team,
 ): void {
   if (homeTeam.equals(awayTeam)) {
-    throw new SportsEventDomainError("Home and away teams must be different");
+    throw new SportsEventDomainError("Home and away teams must be different", {
+      homeTeamId: homeTeam.id,
+      awayTeamId: awayTeam.id,
+    });
   }
 
   if (homeTeam.sportId !== sportId || awayTeam.sportId !== sportId) {
@@ -131,7 +133,7 @@ function assertSameSportAndOpponents(
         homeTeamSportId: homeTeam.sportId,
         awayTeamSportId: awayTeam.sportId,
         eventSportId: sportId,
-      }
+      },
     );
   }
 }

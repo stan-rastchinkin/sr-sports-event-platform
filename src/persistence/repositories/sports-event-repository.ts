@@ -201,7 +201,11 @@ export class SportsEventRepository implements SportsEventRepositoryPort {
 
   private async rejectOverlap(manager: EntityManager, query: OverlapQuery): Promise<void> {
     if (await this.findOverlap(manager, query)) {
-      throw new TeamScheduleConflictError();
+      throw new TeamScheduleConflictError({
+        teamIds: query.teamIds,
+        startsAt: query.startsAt,
+        durationMs: query.durationMs,
+      });
     }
   }
 

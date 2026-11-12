@@ -1,29 +1,30 @@
+import { ValidationError } from "./validation-error.js";
+
 import type { z } from "zod";
 
 export class DomainError extends Error {
-  constructor(message: string, extras?: unknown) {
-    message = extras === undefined 
-      ? message
-      : `${message}; extras: ${JSON.stringify(extras)}` 
+  public readonly extras: unknown;
 
+  public constructor(message: string, extras?: unknown) {
     super(message);
     this.name = new.target.name;
+    this.extras = extras;
   }
 }
 
-
-export function validateAgainstSchema<T>(schema: z.ZodType<T>, input: unknown, errorConstructor: new (message: string) => DomainError): T {
+export function validateAgainstSchema<Schema extends z.ZodType>(
+  schema: Schema,
+  input: unknown,
+): z.output<Schema> {
   const result = schema.safeParse(input);
 
   if (!result.success) {
-    const message = result.error.issues
-      .map(({ path, message }) => {
-        const field = path.map(String).join(".");
-        return field ? `${field}: ${message}` : message;
-      })
-      .join("; ");
-
-    throw new errorConstructor(message);
+    throw new ValidationError({
+      issues: result.error.issues.map(({ path, message }) => ({
+        path: path.map(String).join("."),
+        message,
+      })),
+    });
   }
 
   return result.data;

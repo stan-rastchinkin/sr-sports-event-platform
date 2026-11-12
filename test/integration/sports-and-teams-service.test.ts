@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import "../../src/container.js";
-import { ValidationError } from "../../src/application/errors.js";
 import { SportsService } from "../../src/application/sports-service.js";
 import { TeamsService } from "../../src/application/teams-service.js";
 import { createDataSource } from "../../src/persistence/data-source.js";
@@ -89,11 +88,6 @@ describe("SportsService and TeamsService", () => {
     const page = await teamsService.listTeams({ limit: 1, offset: start });
 
     expect(page.map((row) => row.id)).toEqual(ids.slice(start, start + 1));
-  });
-
-  it("rejects an out-of-range limit", () => {
-    expect(() => sportsService.listSports({ limit: 0, offset: 0 })).toThrow(ValidationError);
-    expect(() => teamsService.listTeams({ limit: 101, offset: 0 })).toThrow(ValidationError);
   });
 
   it("applies the default page when the query is empty", async () => {

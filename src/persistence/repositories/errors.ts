@@ -1,23 +1,22 @@
-export class OptimisticLockError extends Error {
-  public constructor(
-    public readonly eventId: string,
-    public readonly expectedVersion: number,
-  ) {
-    super(`Sports event ${eventId} was not saved at version ${expectedVersion}`);
-    this.name = new.target.name;
+import { ApplicationError, NotFoundError } from "../../application/errors.js";
+
+export class OptimisticLockError extends ApplicationError {
+  public constructor(eventId: string, expectedVersion: number) {
+    super("The event has been modified by another request", {
+      eventId,
+      expectedVersion,
+    });
   }
 }
 
-export class SportsEventNotFoundError extends Error {
-  public constructor(public readonly eventId: string) {
-    super(`Sports event ${eventId} was not found`);
-    this.name = new.target.name;
+export class SportsEventNotFoundError extends NotFoundError {
+  public constructor(eventId: string) {
+    super("The event was not found", { eventId });
   }
 }
 
-export class TeamNotFoundError extends Error {
-  public constructor(public readonly teamId: string) {
-    super(`Team ${teamId} was not found`);
-    this.name = new.target.name;
+export class TeamNotFoundError extends NotFoundError {
+  public constructor(teamId: string) {
+    super("The team was not found", { teamId });
   }
 }

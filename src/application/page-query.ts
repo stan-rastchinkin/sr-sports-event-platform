@@ -1,11 +1,14 @@
-import { z } from "zod";
+export const DEFAULT_PAGE_LIMIT = 50;
+export const DEFAULT_PAGE_OFFSET = 0;
 
-const DEFAULT_PAGE_LIMIT = 50;
-const MAX_PAGE_LIMIT = 100;
+export type PageQuery = {
+  limit?: number;
+  offset?: number;
+};
 
-export const pageQuerySchema = z.object({
-  limit: z.int().min(1).max(MAX_PAGE_LIMIT).default(DEFAULT_PAGE_LIMIT),
-  offset: z.int().nonnegative().default(0),
-});
-
-export type PageQueryInput = z.input<typeof pageQuerySchema>;
+export function resolvePage(query: PageQuery): { limit: number; offset: number } {
+  return {
+    limit: query.limit ?? DEFAULT_PAGE_LIMIT,
+    offset: query.offset ?? DEFAULT_PAGE_OFFSET,
+  };
+}

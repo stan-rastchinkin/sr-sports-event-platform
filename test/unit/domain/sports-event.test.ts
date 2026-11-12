@@ -5,6 +5,7 @@ import {
   SportsEvent,
   Team,
   teamId,
+  ValidationError,
 } from "../../../src/domain/index.js";
 import { describe, expect, it } from "@jest/globals";
 
@@ -133,8 +134,17 @@ describe("SportsEvent", () => {
       startedAt,
     });
     expect(started.version).toBe(0);
+    expect(() => started.finish(kickoff)).toThrow(ValidationError);
     expect(() => started.finish(kickoff)).toThrow(
-      "Finish timestamp must not precede the start timestamp",
+      expect.objectContaining({
+        extras: {
+          issues: [
+            expect.objectContaining({
+              message: "Finish timestamp must not precede the start timestamp",
+            }),
+          ],
+        },
+      }),
     );
 
     started.finish(finishedAt);

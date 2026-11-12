@@ -1,13 +1,15 @@
 import "reflect-metadata";
 import "../../src/container.js";
-import { TeamScheduleConflictError, ValidationError } from "../../src/application/errors.js";
+import { TeamScheduleConflictError } from "../../src/application/errors.js";
 import { SportsEventService } from "../../src/application/sports-event-service.js";
 import {
+  eventId,
   EventStatusName,
   SportsEvent,
   SportsEventDomainError,
   SportsEventStatusDomainError,
   sportId,
+  teamId,
 } from "../../src/domain/index.js";
 import { createDataSource } from "../../src/persistence/data-source.js";
 import {
@@ -104,12 +106,9 @@ describe("SportsEventService", () => {
     });
   });
 
-  it("rejects an invalid timestamp, a missing team, the same team twice, and a cross-sport team", async () => {
+  it("rejects a missing team, the same team twice, and a cross-sport team", async () => {
     const scheduledAt = new Date("2060-02-01T12:00:00.000Z");
 
-    await expect(
-      service.schedule(booking(homeId, awayId, new Date(Number.NaN))),
-    ).rejects.toBeInstanceOf(ValidationError);
     await expect(service.schedule(booking(randomUUID(), awayId, scheduledAt))).rejects.toBeInstanceOf(
       TeamNotFoundError,
     );
@@ -119,8 +118,8 @@ describe("SportsEventService", () => {
     await expect(
       service.schedule({
         sportId: sport,
-        homeTeamId: homeId,
-        awayTeamId: otherHomeId,
+        homeTeamId: teamId(homeId),
+        awayTeamId: teamId(otherHomeId),
         scheduledAt,
       }),
     ).rejects.toBeInstanceOf(SportsEventDomainError);
@@ -205,7 +204,7 @@ describe("SportsEventService", () => {
   });
 
   it("throws when the event does not exist", async () => {
-    await expect(service.getById(randomUUID())).rejects.toBeInstanceOf(SportsEventNotFoundError);
+    await expect(service.getById(eventId(randomUUID()))).rejects.toBeInstanceOf(SportsEventNotFoundError);
   });
 
   it("searches upcoming team events, all team events, and upcoming sport events", async () => {
@@ -215,21 +214,21 @@ describe("SportsEventService", () => {
     const past = await service.schedule(booking(homeId, thirdId, minutesAfter(now, -400)));
     await service.schedule({
       sportId: otherSport,
-      homeTeamId: otherHomeId,
-      awayTeamId: otherAwayId,
+      homeTeamId: teamId(otherHomeId),
+      awayTeamId: teamId(otherAwayId),
       scheduledAt: minutesAfter(now, 200),
     });
     const started = await service.schedule(booking(homeId, fourthId, minutesAfter(now, 800)));
     await service.start({ eventId: started.id, at: minutesAfter(now, 800) });
 
     const upcomingForHome = await service.search({
-      teamId: homeId,
+      teamId: teamId(homeId),
       status: EventStatusName.Scheduled,
       scheduledAfter: now,
     });
     expect(upcomingForHome.map((event) => event.id)).toEqual([upcoming.id]);
 
-    const allForHome = await service.search({ teamId: homeId });
+    const allForHome = await service.search({ teamId: teamId(homeId) });
     expect(allForHome.map((event) => event.id)).toEqual([past.id, upcoming.id, started.id]);
 
     const upcomingForSport = await service.search({
@@ -238,13 +237,6 @@ describe("SportsEventService", () => {
       scheduledAfter: now,
     });
     expect(upcomingForSport.map((event) => event.id)).toEqual([upcoming.id, later.id]);
-  });
-
-  it("rejects an invalid search range", async () => {
-    const at = new Date("2062-02-01T00:00:00.000Z");
-    await expect(
-      service.search({ scheduledAfter: at, scheduledBefore: at }),
-    ).rejects.toBeInstanceOf(ValidationError);
   });
 
   it("lets one of two overlapping creates win when they share a team on opposite sides", async () => {
@@ -356,8 +348,8 @@ describe("SportsEventService", () => {
 function booking(homeTeamId: string, awayTeamId: string, scheduledAt: Date) {
   return {
     sportId: sport,
-    homeTeamId,
-    awayTeamId,
+    homeTeamId: teamId(homeTeamId),
+    awayTeamId: teamId(awayTeamId),
     scheduledAt,
   };
 }

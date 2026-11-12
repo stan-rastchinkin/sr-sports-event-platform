@@ -26,24 +26,25 @@ export class EventStatus {
 
   public static create(input: EventStatusInput): EventStatus {
     if (!Object.hasOwn(stateSchemaValidators, input.status)) {
-      throw new SportsEventStatusDomainError(`Unknown event status`, { status: input.status });
+      throw new SportsEventStatusDomainError("Unknown event status", { status: input.status });
     }
 
     const schema = stateSchemaValidators[input.status as EventKind];
-    return new EventStatus(validateAgainstSchema<EventState>(schema, input, SportsEventStatusDomainError));
+    return new EventStatus(validateAgainstSchema(schema, input));
   }
 
   public start(at: Date): EventStatus {
     if (this.stateValue.status !== EventStatusName.Scheduled) {
-      throw new SportsEventStatusDomainError("Only scheduled events can start", { status: this.stateValue.status });
+      throw new SportsEventStatusDomainError("Only scheduled events can start", {
+        status: this.stateValue.status,
+      });
     }
-    const data = validateAgainstSchema<EventState>(
+    const data = validateAgainstSchema(
       stateSchemaValidators[EventStatusName.InProgress],
       {
         status: EventStatusName.InProgress,
         startedAt: new Date(at),
       },
-      SportsEventStatusDomainError,
     );
 
     return new EventStatus(data);
@@ -51,16 +52,17 @@ export class EventStatus {
 
   public finish(at: Date): EventStatus {
     if (this.stateValue.status !== EventStatusName.InProgress) {
-      throw new SportsEventStatusDomainError("Only in-progress events can finish", { status: this.stateValue.status });
+      throw new SportsEventStatusDomainError("Only in-progress events can finish", {
+        status: this.stateValue.status,
+      });
     }
-    const data = validateAgainstSchema<EventState>(
+    const data = validateAgainstSchema(
       stateSchemaValidators[EventStatusName.Finished],
       {
         status: EventStatusName.Finished,
         startedAt: new Date(this.stateValue.startedAt),
         finishedAt: new Date(at),
       },
-      SportsEventStatusDomainError,
     );
 
     return new EventStatus(data);
@@ -68,16 +70,17 @@ export class EventStatus {
 
   public cancel(reason: string, at: Date): EventStatus {
     if (this.stateValue.status !== EventStatusName.Scheduled) {
-      throw new SportsEventStatusDomainError("Only scheduled events can be cancelled", { status: this.stateValue.status });
+      throw new SportsEventStatusDomainError("Only scheduled events can be cancelled", {
+        status: this.stateValue.status,
+      });
     }
-    const data = validateAgainstSchema<EventState>(
+    const data = validateAgainstSchema(
       stateSchemaValidators[EventStatusName.Cancelled],
       {
         status: EventStatusName.Cancelled,
         cancelledAt: new Date(at),
         cancelationReason: reason,
       },
-      SportsEventStatusDomainError,
     );
 
     return new EventStatus(data);

@@ -1,14 +1,17 @@
 export class ApplicationError extends Error {
-  public constructor(message: string) {
+  public readonly extras: unknown;
+
+  public constructor(message: string, extras?: unknown) {
     super(message);
     this.name = new.target.name;
+    this.extras = extras;
   }
 }
 
-export class ValidationError extends ApplicationError {}
+export class NotFoundError extends ApplicationError {}
 
 export class TeamScheduleConflictError extends ApplicationError {
-  public constructor() {
-    super("Team is already booked for an overlapping interval");
+  public constructor(extras?: unknown) {
+    super("Requested time is not available for team", extras);
   }
 }

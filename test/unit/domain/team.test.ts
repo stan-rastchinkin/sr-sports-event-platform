@@ -25,7 +25,11 @@ describe("Team", () => {
 
     expect(create).toThrow(TeamDomainError);
     expect(create).toThrow("Team name must be nonempty");
-    expect(create).toThrow(JSON.stringify({ name }));
+    expect(create).toThrow(
+      expect.objectContaining({
+        extras: { name },
+      }),
+    );
   });
 
   it("is equal to another team with the same id", () => {

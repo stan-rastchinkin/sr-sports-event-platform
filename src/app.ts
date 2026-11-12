@@ -1,5 +1,10 @@
+import { registerErrorHandler } from "./http/errors/error-handler.js";
 import { registerOpenApi } from "./http/plugins/openapi.js";
+import { registerRequestScope } from "./http/plugins/request-scope.js";
+import { eventsRoutes } from "./http/routes/events.js";
 import { healthRoutes } from "./http/routes/health.js";
+import { sportsRoutes } from "./http/routes/sports.js";
+import { teamsRoutes } from "./http/routes/teams.js";
 import {
   serializerCompiler,
   validatorCompiler,
@@ -17,6 +22,7 @@ export interface AppDependencies {
 
 export async function buildApp(dependencies: AppDependencies) {
   const app = Fastify({
+    handlerTimeout: 10_000,
     logger:
       dependencies.env.NODE_ENV === "development"
         ? {
@@ -37,8 +43,13 @@ export async function buildApp(dependencies: AppDependencies) {
   });
 
   try {
+    registerErrorHandler(app);
+    registerRequestScope(app);
     await registerOpenApi(app);
     await app.register(healthRoutes(dependencies.dataSource));
+    await app.register(eventsRoutes());
+    await app.register(teamsRoutes());
+    await app.register(sportsRoutes());
   } catch (error) {
     await app.close();
     throw error;

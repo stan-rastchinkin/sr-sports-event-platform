@@ -32,6 +32,10 @@ describe("identifiers", () => {
   it("rejects a SportId that is not an integer", () => {
     expect(() => sportId(1.5)).toThrow(DomainError);
     expect(() => sportId(1.5)).toThrow("SportId must be an integer");
-    expect(() => sportId(Number.NaN)).toThrow('{"value":null}');
+    expect(() => sportId(Number.NaN)).toThrow(
+      expect.objectContaining({
+        extras: { value: Number.NaN },
+      }),
+    );
   });
 });

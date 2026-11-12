@@ -1,3 +1,4 @@
+import { commonErrorResponses } from "../errors/error-response.js";
 import { z } from "zod";
 
 import type { FastifyPluginCallbackZod } from "@fastify/type-provider-zod";
@@ -15,6 +16,7 @@ export function healthRoutes(dataSource: DataSource): FastifyPluginCallbackZod {
         schema: {
           response: {
             200: healthResponseSchema,
+            ...commonErrorResponses,
           },
         },
       },

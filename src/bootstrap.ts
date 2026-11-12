@@ -11,7 +11,11 @@ import type { FastifyInstance } from "fastify";
 export async function bootstrap(): Promise<FastifyInstance> {
   const env = loadEnv();
   const dataSource = createDataSource(env.DATABASE_URL);
-  Container.set(DataSource, dataSource);
+  Container.set({
+    id: DataSource,
+    value: dataSource,
+    global: true,
+  });
 
   await dataSource.initialize();
 

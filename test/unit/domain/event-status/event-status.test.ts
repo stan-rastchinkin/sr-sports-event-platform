@@ -1,4 +1,4 @@
-import { DomainError } from "../../../../src/domain/core/index.js";
+import { DomainError, ValidationError } from "../../../../src/domain/core/index.js";
 import {
   EventStatus,
   SportsEventStatusDomainError,
@@ -8,6 +8,19 @@ import { describe, expect, it } from "@jest/globals";
 function expectStatusError(act: () => void, message: string): void {
   expect(act).toThrow(SportsEventStatusDomainError);
   expect(act).toThrow(message);
+}
+
+function expectValidation(act: () => void, message: string): void {
+  expect(act).toThrow(ValidationError);
+  expect(act).toThrow(
+    expect.objectContaining({
+      extras: {
+        issues: expect.arrayContaining([
+          expect.objectContaining({ message: expect.stringContaining(message) }),
+        ]),
+      },
+    }),
+  );
 }
 
 const startedAt = new Date("2026-06-01T15:00:00.000Z");
@@ -70,7 +83,7 @@ describe("EventStatus", () => {
   it("rejects a finish timestamp that precedes the start", () => {
     const started = scheduledStatus().start(finishedAt);
 
-    expectStatusError(
+    expectValidation(
       () => started.finish(startedAt),
       "Finish timestamp must not precede the start timestamp",
     );
@@ -80,7 +93,7 @@ describe("EventStatus", () => {
   it.each(["", "   "])("rejects a blank cancellation reason %j", (reason) => {
     const scheduled = scheduledStatus();
 
-    expectStatusError(
+    expectValidation(
       () => scheduled.cancel(reason, cancelledAt),
       "Cancellation reason must be nonempty",
     );
@@ -90,9 +103,7 @@ describe("EventStatus", () => {
   it("rejects invalid timestamps without changing the current status", () => {
     const scheduled = scheduledStatus();
 
-    expect(() => scheduled.start(new Date(Number.NaN))).toThrow(
-      "expected date, received Date",
-    );
+    expectValidation(() => scheduled.start(new Date(Number.NaN)), "expected date, received Date");
     expect(scheduled.state.status).toBe("scheduled");
   });
 
@@ -208,7 +219,7 @@ describe("EventStatus", () => {
   });
 
   it("rejects combinations that disagree with the status", () => {
-    expectStatusError(
+    expectValidation(
       () =>
         EventStatus.create({
           status: "scheduled",
@@ -217,12 +228,12 @@ describe("EventStatus", () => {
       'Unrecognized key: "startedAt"',
     );
 
-    expectStatusError(
+    expectValidation(
       () => EventStatus.create({ status: "in_progress" }),
-      "startedAt: Invalid input: expected date, received undefined",
+      "Invalid input: expected date, received undefined",
     );
 
-    expectStatusError(
+    expectValidation(
       () =>
         EventStatus.create({
           status: "finished",
@@ -232,7 +243,7 @@ describe("EventStatus", () => {
       "Finish timestamp must not precede the start timestamp",
     );
 
-    expectStatusError(
+    expectValidation(
       () =>
         EventStatus.create({
           status: "cancelled",
@@ -244,7 +255,12 @@ describe("EventStatus", () => {
 
     expectStatusError(
       () => EventStatus.create({ status: "postponed" }),
-      'Unknown event status; extras: {"status":"postponed"}',
+      "Unknown event status",
+    );
+    expect(() => EventStatus.create({ status: "postponed" })).toThrow(
+      expect.objectContaining({
+        extras: { status: "postponed" },
+      }),
     );
   });
 });

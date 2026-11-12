@@ -11,10 +11,7 @@ export abstract class AggregateRoot<
     super(id);
 
     if (!Number.isSafeInteger(version) || version < 0) {
-      throw new DomainError(
-        "Aggregate version must be a non-negative safe integer",
-        { version },
-      );
+      throw new DomainError("Aggregate version must be a non-negative safe integer", { version });
     }
   }
 }
